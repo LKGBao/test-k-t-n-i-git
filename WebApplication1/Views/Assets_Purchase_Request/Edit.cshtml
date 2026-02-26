@@ -1,0 +1,157 @@
+@model WebApplication1.Models.AssetPurchaseRequestEditViewModel
+
+@{
+    ViewData["Title"] = "Sửa yêu cầu mua sắm";
+    var branchId = Model.BranchId;
+    var branchName = ViewBag.BranchName as string ?? "Chi nhánh";
+    var categories = ViewBag.Categories as SelectList;
+}
+
+<h1>@ViewData["Title"]</h1>
+<p class="text-muted">Chi nhánh: <strong>@branchName</strong></p>
+
+<div class="row">
+    <div class="col-md-8">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="BranchId" />
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Reason" class="control-label">Lý do mua sắm</label>
+                <textarea asp-for="Reason" class="form-control"></textarea>
+                <span asp-validation-for="Reason" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Status" class="control-label">Trạng thái</label>
+                <input asp-for="Status" class="form-control" />
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="Note" class="control-label">Ghi chú</label>
+                <textarea asp-for="Note" class="form-control"></textarea>
+                <span asp-validation-for="Note" class="text-danger"></span>
+            </div>
+
+            <h4>Các loại tài sản trong yêu cầu</h4>
+            <table class="table table-bordered mt-2">
+                <thead>
+                    <tr>
+                        <th>Loại tài sản</th>
+                        <th style="width: 160px;">Số lượng</th>
+                        <th style="width: 60px;"></th>
+                    </tr>
+                </thead>
+                <tbody id="item-rows">
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <tr>
+                            <td>
+                                <select asp-for="Items[i].Asset_Category_Id"
+                                        class="form-control"
+                                        asp-items="categories">
+                                    <option value="">-- Chọn loại tài sản --</option>
+                                </select>
+                                <span asp-validation-for="Items[i].Asset_Category_Id" class="text-danger"></span>
+                            </td>
+                            <td>
+                                <input asp-for="Items[i].Quantity" class="form-control" />
+                                <span asp-validation-for="Items[i].Quantity" class="text-danger"></span>
+                            </td>
+                            <td class="text-center">
+                                <button type="button" class="btn btn-sm btn-outline-danger remove-item-row">×</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <select id="category-options-template" class="d-none">
+                <option value="">-- Chọn loại tài sản --</option>
+                @if (categories != null)
+                {
+                    foreach (var opt in categories)
+                    {
+                        <option value="@opt.Value">@opt.Text</option>
+                    }
+                }
+            </select>
+
+            <button type="button" id="add-item-row" class="btn btn-outline-primary btn-sm mt-2">
+                + Thêm loại tài sản
+            </button>
+
+            <p class="text-muted mt-2">
+                Bạn có thể để trống những dòng không dùng; chỉ các dòng có loại tài sản và số lượng &gt; 0 mới được lưu.
+            </p>
+
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-primary">Lưu</button>
+                <a asp-action="Index" asp-route-branchId="@branchId" class="btn btn-secondary ms-2">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const addBtn = document.getElementById('add-item-row');
+            const tbody = document.getElementById('item-rows');
+            const templateSelect = document.getElementById('category-options-template');
+
+            if (!addBtn || !tbody || !templateSelect) return;
+
+            let index = @Model.Items.Count;
+
+            addBtn.addEventListener('click', function () {
+                const row = document.createElement('tr');
+
+                const categoryTd = document.createElement('td');
+                const select = document.createElement('select');
+                select.name = `Items[${index}].Asset_Category_Id`;
+                select.className = 'form-control';
+                select.innerHTML = templateSelect.innerHTML;
+                categoryTd.appendChild(select);
+
+                const qtyTd = document.createElement('td');
+                const qtyInput = document.createElement('input');
+                qtyInput.name = `Items[${index}].Quantity`;
+                qtyInput.type = 'number';
+                qtyInput.min = '1';
+                qtyInput.className = 'form-control';
+                qtyTd.appendChild(qtyInput);
+
+                const actionTd = document.createElement('td');
+                actionTd.className = 'text-center';
+                const removeBtn = document.createElement('button');
+                removeBtn.type = 'button';
+                removeBtn.className = 'btn btn-sm btn-outline-danger remove-item-row';
+                removeBtn.textContent = '×';
+                actionTd.appendChild(removeBtn);
+
+                row.appendChild(categoryTd);
+                row.appendChild(qtyTd);
+                row.appendChild(actionTd);
+
+                tbody.appendChild(row);
+                index++;
+            });
+
+            tbody.addEventListener('click', function (e) {
+                const target = e.target;
+                if (target.classList.contains('remove-item-row')) {
+                    const row = target.closest('tr');
+                    if (row) {
+                        row.remove();
+                    }
+                }
+            });
+        });
+    </script>
+}
+
