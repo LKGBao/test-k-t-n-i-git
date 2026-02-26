@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\bin",
+    "\\Controllers",
+    "\\Data",
+    "\\Models",
+    "\\Views",
+    "\\Views\\Assets",
+    "\\Views\\Home",
+    "\\wwwroot"
+  ],
+  "SelectedNode": "\\Models\\Role.cs",
+  "PreviewInSolutionExplorer": false
+}
